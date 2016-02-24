@@ -1,0 +1,4 @@
+[package]
+name = "rust-dnp3-decode"
+version = "0.1.0"
+authors = ["jadamcrain <jadamcrain@gmail.com>"]
