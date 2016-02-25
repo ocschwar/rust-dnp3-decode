@@ -1,7 +1,6 @@
 extern crate dnp3;
 
-use dnp3::link::Header;
-use dnp3::link::Function;
+use dnp3::link::{Function, Header};
 
 fn main() {
 
