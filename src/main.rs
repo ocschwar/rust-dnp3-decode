@@ -1,14 +1,12 @@
-extern crate dnp3decode;
+extern crate dnp3;
 
-use dnp3decode::link::header::LinkHeader;
-use dnp3decode::link::header::LinkFunction;
+use dnp3::link::Header;
+use dnp3::link::Function;
 
 fn main() {
 
-    println!("Creating a header!");
-
-    let header = LinkHeader {
-        func: LinkFunction::Unknown(0xFF),
+    let header = Header {
+        func: Function::Unknown(0xFF),
         master:    true,
     	fcb:       true,
     	fcvdfc:    true,

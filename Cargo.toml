@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["jadamcrain <jadamcrain@gmail.com>"]
 
 [lib]
-name = "dnp3decode"
+name = "dnp3"
 path = "src/lib.rs"
 
 [[bin]]
