@@ -21,8 +21,6 @@ enum ParserState {
     WaitForBody{header: Header, received : usize, length: usize }
 }
 
-const SYNC1 : u8 = 0x05;
-const SYNC2 : u8 = 0x64;
 const HEADER_SIZE : usize = 8;
 const MAX_BODY_SIZE : usize = 282;
 
@@ -31,6 +29,9 @@ pub struct Parser {
     header: [u8; HEADER_SIZE], // beginning after the 0x0564
     body: [u8; MAX_BODY_SIZE], // after the header including the CRCs
 }
+
+const SYNC1 : u8 = 0x05;
+const SYNC2 : u8 = 0x64;
 
 impl Parser {
 
@@ -57,6 +58,12 @@ impl Parser {
 
     // skip over values until you find SYNC1
     fn decode_wait_sync1(&self, slice: &mut [u8]) -> bool {
+        while !slice.is_empty() {
+            if slice[0] == SYNC1 {
+                slice = &mut slice[1 ..];
+            }
+
+        }
         false
     }
 }
