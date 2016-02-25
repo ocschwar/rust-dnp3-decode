@@ -5,17 +5,18 @@ pub trait FrameHandler {
 }
 
 enum ParserState {
-    WaitSync,
+    WaitSync05,
+    WaitSync64,
     WaitForHeader{remaining : usize},
-    WaitForBody
+    WaitForBody{header: Header, remaining : usize}
 }
 
-const HEADER_SIZE : usize = 10;
+const HEADER_SIZE : usize = 8;
 const MAX_BODY_SIZE : usize = 282;
 
 pub struct Parser {
     state: ParserState,
-    header: [u8; HEADER_SIZE],
+    header: [u8; HEADER_SIZE], // beginning after the 0x0564
     body: [u8; MAX_BODY_SIZE],
 }
 
@@ -23,7 +24,7 @@ impl Parser {
 
     fn new () -> Parser {
         Parser {
-            state: ParserState::WaitSync,
+            state: ParserState::WaitSync05,
             header: [0; HEADER_SIZE],
             body: [0; MAX_BODY_SIZE]
         }
@@ -32,4 +33,6 @@ impl Parser {
     fn decode(&self, slice: &[u8], handler: &mut FrameHandler) {
 
     }
+
+
 }
