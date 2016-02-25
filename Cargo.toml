@@ -2,3 +2,11 @@
 name = "rust-dnp3-decode"
 version = "0.1.0"
 authors = ["jadamcrain <jadamcrain@gmail.com>"]
+
+[lib]
+name = "dnp3decode"
+path = "src/lib.rs"
+
+[[bin]]
+name = "decoder"
+path = "src/main.rs"
