@@ -1,27 +1,35 @@
 use link::header::Header;
 
 pub trait FrameHandler {
-    fn on_frame(&self, header: Header);
+    fn on_frame(&self, header: Header, slice: &[u8]);
 }
 
 enum ParserState {
     WaitSync,
-    WaitForHeader,
+    WaitForHeader{remaining : usize},
     WaitForBody
 }
 
+const HEADER_SIZE : usize = 10;
+const MAX_BODY_SIZE : usize = 282;
+
 pub struct Parser {
-    state: ParserState
+    state: ParserState,
+    header: [u8; HEADER_SIZE],
+    body: [u8; MAX_BODY_SIZE],
 }
 
 impl Parser {
+
     fn new () -> Parser {
         Parser {
-            state: ParserState::WaitSync
+            state: ParserState::WaitSync,
+            header: [0; HEADER_SIZE],
+            body: [0; MAX_BODY_SIZE]
         }
     }
 
-    fn decode(handler: &mut FrameHandler) {
+    fn decode(&self, slice: &[u8], handler: &mut FrameHandler) {
 
     }
 }
