@@ -43,27 +43,55 @@ impl Parser {
         }
     }
 
-    pub fn decode(&self, slice: &mut [u8], handler: &mut ParseHandler) {
-        while self.decode_one(slice, handler) {}
+    // decode all the bytes in the slice
+    pub fn decode(&mut self, slice: &[u8], handler: &mut ParseHandler) {
+
+        let mut total_consumed : usize = 0;
+
+        while  {
+            let subslice = &slice[total_consumed ..];
+            let num_consumed = self.decode_one(subslice, handler);
+            total_consumed += num_consumed;
+            num_consumed != 0
+        } {}
+
+        //while(num_consumed)
+        //while self.decode_one(slice, handler) {}
     }
 
-    fn decode_one(&self, slice: &mut [u8], handler: &mut ParseHandler) -> bool {
+    // returns the number of bytes consumed from the slice. might mutate the state.
+    fn decode_one(&mut self, slice: &[u8], handler: &mut ParseHandler) -> usize {
         match self.state {
             ParserState::WaitSync1 => self.decode_wait_sync1(slice),
-            ParserState::WaitSync2 => false,
-            ParserState::WaitForHeader{received} => false,
-            ParserState::WaitForBody{ref header, received, length} => false,
+            ParserState::WaitSync2 => self.decode_wait_sync2(slice),
+            ParserState::WaitForHeader{received} => 0,
+            ParserState::WaitForBody{ref header, received, length} => 0,
         }
     }
 
     // skip over values until you find SYNC1
-    fn decode_wait_sync1(&self, slice: &mut [u8]) -> bool {
-        while !slice.is_empty() {
-            if slice[0] == SYNC1 {
-                slice = &mut slice[1 ..];
+    fn decode_wait_sync1(&mut self, slice: &[u8]) -> usize {
+        for value in slice {
+            if *value == SYNC1 {
+                self.state = ParserState::WaitSync2;
+                return 1;
             }
-
         }
-        false
+        slice.len()
+    }
+
+    // skip over values until you find SYNC2
+    fn decode_wait_sync2(&mut self, slice: &[u8]) -> usize {
+        match slice.first() {
+            None => 0,
+            Some(&SYNC2) => {
+                self.state = ParserState::WaitForHeader{received: 0};
+                1
+            }
+            _ =>  {
+                self.state = ParserState::WaitSync1;
+                1
+            }
+        }
     }
 }
