@@ -240,11 +240,7 @@ fn returns_frame_for_length_of_five() {
 
     handler.expects.push(
         Expect::Frame(
-            Header {
-                ctrl: Ctrl::from(0xC0),
-                dest: 1,
-                src:  1024,
-            },
+            Header::from(Ctrl::from(0xC0), 1, 1024),
             0
         )
     );
