@@ -1,4 +1,6 @@
 use link::header::Header;
+use std::cmp;
+use std::ptr;
 
 pub enum ParseError {
     BadLength(u8),
@@ -17,8 +19,8 @@ pub trait ParseHandler {
 enum ParserState {
     WaitSync1,
     WaitSync2,
-    WaitForHeader{received : usize},
-    WaitForBody{header: Header, received : usize, length: usize }
+    WaitForHeader(usize),       // the number of bytes received
+    WaitForBody(usize, usize)   // the number of bytes received and the number remaining
 }
 
 const HEADER_SIZE : usize = 8;
@@ -62,15 +64,15 @@ impl Parser {
     // returns the number of bytes consumed from the slice. might mutate the state.
     fn decode_one(&mut self, slice: &[u8], handler: &mut ParseHandler) -> usize {
         match self.state {
-            ParserState::WaitSync1 => self.decode_wait_sync1(slice),
-            ParserState::WaitSync2 => self.decode_wait_sync2(slice),
-            ParserState::WaitForHeader{received} => 0,
-            ParserState::WaitForBody{ref header, received, length} => 0,
+            ParserState::WaitSync1 => self.wait_sync1(slice),
+            ParserState::WaitSync2 => self.wait_sync2(slice),
+            ParserState::WaitForHeader(received) => self.decode_header(slice, received, handler),
+            ParserState::WaitForBody(received, remaining) => self.decode_body(slice, handler),
         }
     }
 
     // skip over values until you find SYNC1
-    fn decode_wait_sync1(&mut self, slice: &[u8]) -> usize {
+    fn wait_sync1(&mut self, slice: &[u8]) -> usize {
         for value in slice {
             if *value == SYNC1 {
                 self.state = ParserState::WaitSync2;
@@ -81,11 +83,11 @@ impl Parser {
     }
 
     // skip over values until you find SYNC2
-    fn decode_wait_sync2(&mut self, slice: &[u8]) -> usize {
+    fn wait_sync2(&mut self, slice: &[u8]) -> usize {
         match slice.first() {
             None => 0,
             Some(&SYNC2) => {
-                self.state = ParserState::WaitForHeader{received: 0};
+                self.state = ParserState::WaitForHeader(0);
                 1
             }
             _ =>  {
@@ -93,5 +95,40 @@ impl Parser {
                 1
             }
         }
+    }
+
+    fn decode_header(&mut self, slice: &[u8], received: usize, handler: &mut ParseHandler) -> usize {
+
+        // consume the minimum of the length of the slice or the remainder
+        let remaining = HEADER_SIZE - received;
+        let consumed = cmp::min(slice.len(), remaining);
+
+        // copy this amount into header buffer
+        // TODO - clean this up in 1.7
+        let src = &slice[0 .. consumed];
+        let dest = &mut self.header[received ..];
+        assert!(src.len() == dest.len());
+        for i in 0..consumed {
+            dest[i] = src[i];
+        }
+
+        let new_received = received + consumed;
+
+        if new_received < HEADER_SIZE {
+            self.state = ParserState::WaitForHeader(new_received);
+        }
+        else {
+            // we have a full header. Time to analyze and state transition
+            
+
+
+            self.state = ParserState::WaitSync1;
+        }
+
+        consumed
+    }
+
+    fn decode_body(&mut self, slice: &[u8], handler: &mut ParseHandler) -> usize {
+        0
     }
 }
