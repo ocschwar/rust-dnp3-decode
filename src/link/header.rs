@@ -41,4 +41,12 @@ impl Header {
             src: src,
         }
     }
+
+    pub fn default() -> Header {
+        Header {
+            ctrl: Ctrl::from(0),
+            dest: 0,
+            src: 0,
+        }
+    }
 }
